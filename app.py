@@ -170,15 +170,17 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ── Header — TARS centered, width 80 ─────────────────────────────────────────
-col1, col2, col3 = st.columns([2, 1, 2])
-with col2:
-    st.image("Tars.png", width=80)
+import base64
 
-st.markdown("""
-<div style="text-align:center; margin-top:8px;">
-  <p class="vinod-title">Agent Vinod</p>
-  <p class="vinod-sub">Your astrologer you don't need</p>
-  <p class="vinod-tag">Certified by no one &nbsp;·&nbsp; Trusted by fewer</p>
+with open("Tars.png", "rb") as f:
+    img_data = base64.b64encode(f.read()).decode()
+
+st.markdown(f"""
+<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:8px;">
+    <img src="data:image/png;base64,{img_data}" width="80" style="border-radius:8px; margin-bottom:10px;"/>
+    <p class="vinod-title">Agent Vinod</p>
+    <p class="vinod-sub">Your astrologer you don't need</p>
+    <p class="vinod-tag">Certified by no one &nbsp;·&nbsp; Trusted by fewer</p>
 </div>
 <hr class="vinod-divider"/>
 """, unsafe_allow_html=True)
@@ -248,7 +250,7 @@ else:
             """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    user_input = st.chat_input("Ask Agent Vinod. He will answer. Vaguely.")
+    user_input = st.chat_input("Ask Agent...")
     if user_input:
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.spinner("Thinking. Reluctantly."):
