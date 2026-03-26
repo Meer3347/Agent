@@ -6,99 +6,114 @@ from PIL import Image
 tars_icon = Image.open("Tars.png")
 st.set_page_config(page_title="Agent Vinod", page_icon=tars_icon, layout="centered")
 
-# ── Styling ───────────────────────────────────────────────────────────────────
+# ── Styling — works on both light and dark themes ─────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
-html, body, [class*="css"] {
-    background-color: #000 !important;
-    color: #fff !important;
+/* Font everywhere */
+html, body, * {
     font-family: 'IM Fell English', Georgia, serif !important;
 }
 
-.vinod-header { text-align: center; padding: 2rem 0 1rem; }
+/* Header */
 .vinod-title {
-    font-size: 2.6rem;
+    font-size: 2.4rem;
     font-style: italic;
-    color: #ffffff;
     letter-spacing: 3px;
-    margin: 0;
+    margin: 8px 0 4px;
+    text-align: center;
 }
-.vinod-sub  { color: #aaa; font-style: italic; font-size: 1rem; margin: 4px 0; }
-.vinod-tag  { color: #444; font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; }
-
-.tars-img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid #333;
-    margin-bottom: 10px;
-}
-
-.bubble-vinod {
-    background: #111;
-    border: 0.5px solid #333;
-    border-radius: 4px 12px 12px 12px;
-    padding: 12px 16px;
-    margin: 8px 0;
+.vinod-sub {
     font-style: italic;
-    color: #e0e0e0;
-    line-height: 1.7;
+    font-size: 1rem;
+    margin: 2px 0;
+    text-align: center;
+    opacity: 0.6;
+}
+.vinod-tag {
+    font-size: 0.68rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 2px;
+    opacity: 0.35;
+}
+
+/* Sign buttons — explicit dark bg + white text so always readable */
+.stButton > button {
+    background-color: #1a1a1a !important;
+    border: 1px solid #444 !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    font-family: 'IM Fell English', Georgia, serif !important;
+    font-size: 0.85rem !important;
+    padding: 10px 6px !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+}
+.stButton > button:hover {
+    background-color: #2a2a2a !important;
+    border-color: #888 !important;
+    color: #ffffff !important;
+}
+.stButton > button p {
+    color: #ffffff !important;
+}
+
+/* Chat bubbles — explicit colors, not theme-dependent */
+.bubble-wrap {
+    margin-bottom: 12px;
+}
+.bubble-label {
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-bottom: 3px;
+}
+.bubble-vinod {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px 14px 14px 14px;
+    padding: 14px 18px;
+    font-style: italic;
+    color: #e8e8e8 !important;
+    line-height: 1.8;
     font-size: 0.95rem;
 }
 .bubble-user {
-    background: #222;
-    border: 0.5px solid #444;
-    border-radius: 12px 12px 4px 12px;
-    padding: 12px 16px;
-    margin: 8px 0 8px 20%;
-    color: #fff;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 14px 14px 4px 14px;
+    padding: 12px 18px;
+    color: #cccccc !important;
     line-height: 1.7;
     font-size: 0.95rem;
     text-align: right;
-}
-.bubble-label {
-    font-size: 0.7rem;
-    color: #555;
-    margin-bottom: 2px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    margin-left: 20%;
 }
 
-.stTextInput input {
-    background: #111 !important;
-    border: 0.5px solid #333 !important;
-    border-radius: 10px !important;
-    color: #fff !important;
-    font-family: 'IM Fell English', Georgia, serif !important;
-    font-size: 0.95rem !important;
+/* Divider */
+.vinod-divider {
+    border: none;
+    border-top: 1px solid #2a2a2a;
+    margin: 1.2rem 0;
 }
-.stTextInput input:focus { border-color: #666 !important; box-shadow: none !important; }
 
-.stButton > button {
-    background: transparent !important;
-    border: 0.5px solid #333 !important;
-    color: #fff !important;
-    border-radius: 10px !important;
-    font-family: 'IM Fell English', Georgia, serif !important;
-    font-style: italic !important;
-    transition: all 0.2s ease !important;
-}
-.stButton > button:hover { background: #222 !important; border-color: #666 !important; }
-
+/* Footer */
 .vinod-footer {
     text-align: center;
-    font-size: 0.7rem;
-    color: #2a2a2a;
+    font-size: 0.66rem;
     font-style: italic;
+    opacity: 0.2;
     margin-top: 2rem;
     padding-bottom: 1rem;
 }
 
-#MainMenu, footer, header { visibility: hidden; }
-.block-container { padding-top: 1rem !important; }
+/* Hide streamlit chrome */
+#MainMenu, footer { visibility: hidden !important; }
+[data-testid="stToolbar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -150,24 +165,26 @@ if "selected_sign" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ── Header with TARS image ────────────────────────────────────────────────────
-col_l, col_c, col_r = st.columns([1, 2, 1])
+# ── Header ────────────────────────────────────────────────────────────────────
+_, col_c, _ = st.columns([1, 1, 1])
 with col_c:
-    st.image("Tars.png", width=80)
-    st.markdown("""
-    <div class="vinod-header" style="padding-top:0;">
-      <p class="vinod-title">Agent Vinod</p>
-      <p class="vinod-sub">Your astrologer you don't need</p>
-      <p class="vinod-tag">Certified by no one &nbsp;·&nbsp; Trusted by fewer</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.image("Tars.png", use_container_width=True)
+
+st.markdown("""
+<div style="text-align:center; margin-top: 8px;">
+  <p class="vinod-title">Agent Vinod</p>
+  <p class="vinod-sub">Your astrologer you don't need</p>
+  <p class="vinod-tag">Certified by no one &nbsp;·&nbsp; Trusted by fewer</p>
+</div>
+<hr class="vinod-divider"/>
+""", unsafe_allow_html=True)
 
 # ── API ───────────────────────────────────────────────────────────────────────
 def get_client():
     try:
         return Groq(api_key=st.secrets["GROQ_API_KEY"])
     except Exception:
-        st.error("GROQ_API_KEY not found. Add it in Streamlit Cloud → Settings → Secrets.")
+        st.error("GROQ_API_KEY not found. Go to Streamlit Cloud → Settings → Secrets and add it.")
         st.stop()
 
 def ask_vinod(user_message, history):
@@ -184,7 +201,7 @@ def ask_vinod(user_message, history):
 
 # ── Sign picker ───────────────────────────────────────────────────────────────
 if st.session_state.selected_sign is None:
-    st.markdown("<p style='text-align:center; color:#555; font-style:italic; margin-bottom:1rem;'>Select your sign. Agent Vinod will attempt to care.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-style:italic; opacity:0.45; margin-bottom:1rem;'>Select your sign. Agent Vinod will attempt to care.</p>", unsafe_allow_html=True)
     cols = st.columns(4)
     for i, (emoji, name, dates) in enumerate(SIGNS):
         with cols[i % 4]:
@@ -201,9 +218,10 @@ if st.session_state.selected_sign is None:
 # ── Chat ──────────────────────────────────────────────────────────────────────
 else:
     emoji, name = st.session_state.selected_sign
+
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.markdown(f"<p style='color:#aaa; font-style:italic; font-size:0.9rem;'>{emoji} {name}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='font-style:italic; opacity:0.5; font-size:0.9rem;'>{emoji} {name}</p>", unsafe_allow_html=True)
     with col2:
         if st.button("✕ Change sign"):
             st.session_state.selected_sign = None
@@ -212,9 +230,18 @@ else:
 
     for msg in st.session_state.messages:
         if msg["role"] == "assistant":
-            st.markdown(f'<div class="bubble-label">agent vinod</div><div class="bubble-vinod">{msg["content"]}</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="bubble-wrap">
+                <div class="bubble-label">agent vinod</div>
+                <div class="bubble-vinod">{msg["content"]}</div>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            st.markdown(f'<div class="bubble-user">{msg["content"]}</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="bubble-wrap">
+                <div class="bubble-user">{msg["content"]}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     user_input = st.chat_input("Ask Agent Vinod. He will answer. Vaguely.")
