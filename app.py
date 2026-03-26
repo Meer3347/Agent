@@ -168,7 +168,7 @@ if "messages" not in st.session_state:
 # ── Header ────────────────────────────────────────────────────────────────────
 _, col_c, _ = st.columns([1, 1, 1])
 with col_c:
-    st.image("Tars.png", use_container_width=True)
+    st.image("Tars.png", width=80)
 
 st.markdown("""
 <div style="text-align:center; margin-top: 8px;">
