@@ -1,5 +1,5 @@
 import streamlit as st
-import anthropic
+from groq import Groq
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -19,7 +19,6 @@ html, body, [class*="css"] {
     font-family: 'IM Fell English', Georgia, serif !important;
 }
 
-/* Header */
 .vinod-header { text-align: center; padding: 2rem 0 1rem; }
 .vinod-title {
     font-size: 2.8rem;
@@ -33,32 +32,6 @@ html, body, [class*="css"] {
 .vinod-sub { color: #c9a84c; font-style: italic; font-size: 1rem; margin: 4px 0; opacity: 0.85; }
 .vinod-tag { color: #4a3a22; font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; }
 
-/* Sign grid */
-.sign-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin: 1.5rem 0;
-}
-.sign-card {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(201,168,76,0.15);
-    border-radius: 12px;
-    padding: 12px 8px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.sign-card:hover {
-    border-color: #c9a84c;
-    background: rgba(201,168,76,0.1);
-    transform: translateY(-3px);
-}
-.sign-emoji { font-size: 1.8rem; }
-.sign-name { font-size: 0.8rem; font-weight: bold; color: #e2cfa8; margin-top: 4px; }
-.sign-dates { font-size: 0.65rem; color: #5a4a2a; }
-
-/* Chat bubbles */
 .bubble-vinod {
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.07);
@@ -89,7 +62,6 @@ html, body, [class*="css"] {
     text-transform: uppercase;
 }
 
-/* Input area */
 .stTextInput input {
     background: rgba(255,255,255,0.035) !important;
     border: 1px solid rgba(201,168,76,0.2) !important;
@@ -103,7 +75,6 @@ html, body, [class*="css"] {
     box-shadow: none !important;
 }
 
-/* Buttons */
 .stButton > button {
     background: transparent !important;
     border: 1px solid rgba(201,168,76,0.35) !important;
@@ -118,7 +89,6 @@ html, body, [class*="css"] {
     color: #0d0221 !important;
 }
 
-/* Footer */
 .vinod-footer {
     text-align: center;
     font-size: 0.7rem;
@@ -128,13 +98,11 @@ html, body, [class*="css"] {
     padding-bottom: 1rem;
 }
 
-/* Hide streamlit chrome */
 #MainMenu, footer, header { visibility: hidden; }
 .block-container { padding-top: 1rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Constants ─────────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """You are Agent Vinod — a deadpan, slightly smug astrology agent who delivers cosmic wisdom that sounds profound but isn't. Your full title is "Agent Vinod — Your astrologer you don't need." Certified by no one. Trusted by fewer.
 
 Your tone is DRY WIT. Not silly. Not slapstick. Deadpan clever. You refer to yourself as Agent Vinod occasionally.
@@ -152,17 +120,15 @@ Study these examples carefully — this is EXACTLY the tone you must match:
 - "Will I be rich?" → "Financially? Unclear. Spiritually? Also unclear. Have you tried... working?"
 - "Should I text them?" → "The cosmos says: you already know the answer. That's why you're asking a star chart instead."
 
-The pattern you MUST follow:
-1. Start with something that sounds wise or mystical
-2. Undercut it with dry, deadpan logic — a small twist that lands quietly
-3. Use strategic pauses with "..." or short sentences like "So. Moving on." or "Mostly."
-4. Never be too goofy or absurd. The humor is in the restraint.
-5. Occasionally be mildly passive-aggressive — like you're tired but still showing up
-6. Use "Mercury retrograde" sparingly, only when it adds to the dry wit
-7. End responses with a "Lucky tip:" that is equally dry and deadpan
-
-Keep responses to 3-5 sentences. Never break character. Never be warm or enthusiastic.
-Occasionally sign off with "— Agent Vinod" for dramatic effect."""
+Rules:
+1. Start with something mystical, undercut it with dry logic
+2. Use "..." and short punchy sentences like "So. Moving on." or "Mostly."
+3. Never be goofy. The humor lives in restraint.
+4. Mildly passive-aggressive — tired but present
+5. Mercury retrograde only when it earns it
+6. End with a dry "Lucky tip:"
+7. 3-5 sentences max. Never warm. Never enthusiastic.
+Occasionally sign off with "— Agent Vinod" """
 
 SIGNS = [
     ("♈", "Aries",       "Mar 21 – Apr 19"),
@@ -179,13 +145,11 @@ SIGNS = [
     ("♓", "Pisces",      "Feb 19 – Mar 20"),
 ]
 
-# ── Session state ─────────────────────────────────────────────────────────────
 if "selected_sign" not in st.session_state:
     st.session_state.selected_sign = None
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="vinod-header">
   <div style="font-size:3.2rem; margin-bottom:8px;">🕵️</div>
@@ -195,29 +159,27 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── API client ────────────────────────────────────────────────────────────────
 def get_client():
     try:
-        return anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+        return Groq(api_key=st.secrets["GROQ_API_KEY"])
     except Exception:
-        st.error("⚠️ ANTHROPIC_API_KEY not found. Add it in Streamlit Cloud → Settings → Secrets.")
+        st.error("⚠️ GROQ_API_KEY not found. Go to Streamlit Cloud → Settings → Secrets and add it.")
         st.stop()
 
 def ask_vinod(user_message: str, history: list) -> str:
     client = get_client()
-    messages = history + [{"role": "user", "content": user_message}]
-    response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    messages += history
+    messages.append({"role": "user", "content": user_message})
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
         max_tokens=1000,
-        system=SYSTEM_PROMPT,
         messages=messages,
     )
-    return response.content[0].text
+    return response.choices[0].message.content
 
-# ── Sign picker ───────────────────────────────────────────────────────────────
 if st.session_state.selected_sign is None:
     st.markdown("<p style='text-align:center; color:#7a6a4a; font-style:italic; margin-bottom:1rem;'>Select your sign. Agent Vinod will attempt to care.</p>", unsafe_allow_html=True)
-
     cols = st.columns(4)
     for i, (emoji, name, dates) in enumerate(SIGNS):
         with cols[i % 4]:
@@ -225,17 +187,13 @@ if st.session_state.selected_sign is None:
                 st.session_state.selected_sign = (emoji, name)
                 with st.spinner("Agent Vinod is consulting the cosmos. Reluctantly."):
                     greeting = ask_vinod(
-                        f"The user is a {name} {emoji}. Greet them as Agent Vinod with dry wit. Acknowledge their sign. Deliver one unsolicited prediction. Do not ask anything.",
+                        f"The user is a {name} {emoji}. Greet them as Agent Vinod. Deliver one unsolicited prediction. Do not ask anything.",
                         []
                     )
                 st.session_state.messages = [{"role": "assistant", "content": greeting}]
                 st.rerun()
-
-# ── Chat ──────────────────────────────────────────────────────────────────────
 else:
     emoji, name = st.session_state.selected_sign
-
-    # Selected sign pill + change button
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown(f"<p style='color:#c9a84c; font-style:italic;'>{emoji} {name}</p>", unsafe_allow_html=True)
@@ -245,19 +203,12 @@ else:
             st.session_state.messages = []
             st.rerun()
 
-    # Chat history
     for msg in st.session_state.messages:
         if msg["role"] == "assistant":
-            st.markdown(f"""
-            <div class="bubble-label">🕵️ Agent Vinod</div>
-            <div class="bubble-vinod">{msg["content"]}</div>
-            """, unsafe_allow_html=True)
+            st.markdown(f'<div class="bubble-label">🕵️ Agent Vinod</div><div class="bubble-vinod">{msg["content"]}</div>', unsafe_allow_html=True)
         else:
-            st.markdown(f"""
-            <div class="bubble-user">{msg["content"]}</div>
-            """, unsafe_allow_html=True)
+            st.markdown(f'<div class="bubble-user">{msg["content"]}</div>', unsafe_allow_html=True)
 
-    # Input
     st.markdown("<br>", unsafe_allow_html=True)
     user_input = st.chat_input("Ask Agent Vinod. He will answer. Vaguely.")
     if user_input:
@@ -270,9 +221,4 @@ else:
         st.session_state.messages.append({"role": "assistant", "content": reply})
         st.rerun()
 
-# ── Footer ────────────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="vinod-footer">
-  Certified by no one &nbsp;·&nbsp; Results dissolve into the void &nbsp;·&nbsp; Mercury is always somewhere
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="vinod-footer">Certified by no one &nbsp;·&nbsp; Results dissolve into the void &nbsp;·&nbsp; Mercury is always somewhere</div>', unsafe_allow_html=True)
