@@ -6,48 +6,57 @@ from PIL import Image
 tars_icon = Image.open("Tars.png")
 st.set_page_config(page_title="Agent Vinod", page_icon=tars_icon, layout="centered")
 
-# ── Styling — works on both light and dark themes ─────────────────────────────
+# ── Styling ───────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400&display=swap');
 
-/* Font everywhere */
 html, body, * {
-    font-family: 'IM Fell English', Georgia, serif !important;
+    font-family: 'Raleway', sans-serif !important;
+    font-weight: 300 !important;
 }
 
-/* Header */
 .vinod-title {
     font-size: 2.4rem;
-    font-style: italic;
-    letter-spacing: 3px;
+    font-weight: 300 !important;
+    letter-spacing: 6px;
+    text-transform: uppercase;
     margin: 8px 0 4px;
     text-align: center;
 }
 .vinod-sub {
-    font-style: italic;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    font-weight: 300 !important;
     margin: 2px 0;
     text-align: center;
-    opacity: 0.6;
+    opacity: 0.55;
+    letter-spacing: 1px;
 }
 .vinod-tag {
-    font-size: 0.68rem;
-    letter-spacing: 3px;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
     text-transform: uppercase;
     text-align: center;
-    margin-top: 2px;
-    opacity: 0.35;
+    margin-top: 4px;
+    opacity: 0.3;
 }
 
-/* Sign buttons — explicit dark bg + white text so always readable */
+.vinod-divider {
+    border: none;
+    border-top: 1px solid rgba(128,128,128,0.2);
+    margin: 1.4rem 0;
+}
+
+/* Sign buttons */
 .stButton > button {
     background-color: #1a1a1a !important;
     border: 1px solid #444 !important;
     color: #ffffff !important;
-    border-radius: 10px !important;
-    font-family: 'IM Fell English', Georgia, serif !important;
-    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+    font-family: 'Raleway', sans-serif !important;
+    font-weight: 300 !important;
+    font-size: 0.82rem !important;
+    letter-spacing: 1px !important;
     padding: 10px 6px !important;
     transition: all 0.2s ease !important;
     width: 100% !important;
@@ -59,59 +68,54 @@ html, body, * {
 }
 .stButton > button p {
     color: #ffffff !important;
+    font-family: 'Raleway', sans-serif !important;
+    font-weight: 300 !important;
 }
 
-/* Chat bubbles — explicit colors, not theme-dependent */
-.bubble-wrap {
-    margin-bottom: 12px;
-}
+/* Chat bubbles */
+.bubble-wrap { margin-bottom: 14px; }
 .bubble-label {
-    font-size: 0.62rem;
-    letter-spacing: 2px;
+    font-size: 0.6rem;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    opacity: 0.4;
-    margin-bottom: 3px;
+    opacity: 0.35;
+    margin-bottom: 4px;
+    font-weight: 400 !important;
 }
 .bubble-vinod {
     background: #1a1a1a;
-    border: 1px solid #333;
+    border: 1px solid #2e2e2e;
     border-radius: 4px 14px 14px 14px;
     padding: 14px 18px;
-    font-style: italic;
     color: #e8e8e8 !important;
     line-height: 1.8;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    font-weight: 300 !important;
 }
 .bubble-user {
     background: #111;
-    border: 1px solid #333;
+    border: 1px solid #2e2e2e;
     border-radius: 14px 14px 4px 14px;
     padding: 12px 18px;
     color: #cccccc !important;
     line-height: 1.7;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    font-weight: 300 !important;
     text-align: right;
     margin-left: 20%;
-}
-
-/* Divider */
-.vinod-divider {
-    border: none;
-    border-top: 1px solid #2a2a2a;
-    margin: 1.2rem 0;
 }
 
 /* Footer */
 .vinod-footer {
     text-align: center;
-    font-size: 0.66rem;
-    font-style: italic;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
     opacity: 0.2;
     margin-top: 2rem;
     padding-bottom: 1rem;
+    text-transform: uppercase;
 }
 
-/* Hide streamlit chrome */
 #MainMenu, footer { visibility: hidden !important; }
 [data-testid="stToolbar"] { display: none !important; }
 </style>
@@ -165,13 +169,13 @@ if "selected_sign" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ── Header ────────────────────────────────────────────────────────────────────
-_, col_c, _ = st.columns([1, 1, 1])
-with col_c:
+# ── Header — TARS centered, width 80 ─────────────────────────────────────────
+col1, col2, col3 = st.columns([2, 1, 2])
+with col2:
     st.image("Tars.png", width=80)
 
 st.markdown("""
-<div style="text-align:center; margin-top: 8px;">
+<div style="text-align:center; margin-top:8px;">
   <p class="vinod-title">Agent Vinod</p>
   <p class="vinod-sub">Your astrologer you don't need</p>
   <p class="vinod-tag">Certified by no one &nbsp;·&nbsp; Trusted by fewer</p>
@@ -201,7 +205,7 @@ def ask_vinod(user_message, history):
 
 # ── Sign picker ───────────────────────────────────────────────────────────────
 if st.session_state.selected_sign is None:
-    st.markdown("<p style='text-align:center; font-style:italic; opacity:0.45; margin-bottom:1rem;'>Select your sign. Agent Vinod will attempt to care.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; opacity:0.4; font-size:0.85rem; letter-spacing:1px; margin-bottom:1rem;'>Select your sign. Agent Vinod will attempt to care.</p>", unsafe_allow_html=True)
     cols = st.columns(4)
     for i, (emoji, name, dates) in enumerate(SIGNS):
         with cols[i % 4]:
@@ -221,9 +225,9 @@ else:
 
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.markdown(f"<p style='font-style:italic; opacity:0.5; font-size:0.9rem;'>{emoji} {name}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='opacity:0.45; font-size:0.85rem; letter-spacing:2px;'>{emoji}  {name.upper()}</p>", unsafe_allow_html=True)
     with col2:
-        if st.button("✕ Change sign"):
+        if st.button("✕ Change"):
             st.session_state.selected_sign = None
             st.session_state.messages = []
             st.rerun()
